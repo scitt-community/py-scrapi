@@ -20,8 +20,8 @@ from .datatrails_engine import DatatrailsScrapiEngine
 LOGGER = logging.getLogger(__name__)
 
 
-class Scrapi:  # pylint: disable=too-many-instance-attributes
-    """Portable class for all Scrapi implementations.
+class PyScrapi:
+    """Portable class for all SCRAPI implementations.
 
     args:
         ts_type (str): Type of transparency service
@@ -44,7 +44,7 @@ class Scrapi:  # pylint: disable=too-many-instance-attributes
         if self.engine:
             return self.engine.__str__()
 
-        return "Scrapi (uninitialized)"
+        return "PyScrapi (uninitialized)"
 
     # The following methods require a Transparency Service and so require the
     # engine to be initialized
@@ -52,7 +52,7 @@ class Scrapi:  # pylint: disable=too-many-instance-attributes
     def check_engine(self):
         """Helper to protect all calls that need a valid TS connection"""
 
-        logging.debug("Scrapi checking engine liveness...")
+        logging.debug("PyScrapi checking engine liveness...")
 
         if not self.engine:
             raise ScrapiException("No Transparency Service engine specified")
@@ -60,7 +60,7 @@ class Scrapi:  # pylint: disable=too-many-instance-attributes
         if not self.engine.initialized():
             raise ScrapiException("Transparency Service engine malfunction")
 
-        logging.debug("Scrapi engine check SUCCESS")
+        logging.debug("PyScrapi engine check SUCCESS")
 
     def get_configuration(self):
         """Wrapper for SCRAPI Transparency Configuration call

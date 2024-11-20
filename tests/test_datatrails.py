@@ -5,7 +5,7 @@ import os
 import sys
 import time
 
-from .scrapi import Scrapi
+from py_scrapi.py_scrapi import PyScrapi
 
 args = {
     "url": "https://app.datatrails.ai",
@@ -15,7 +15,7 @@ args = {
 }
 
 print("Initializing TS connection")
-myScrapi = Scrapi("DataTrails", args)
+myScrapi = PyScrapi("DataTrails", args)
 
 print("Registering Signed Statement")
 # Read the binary data from the file
