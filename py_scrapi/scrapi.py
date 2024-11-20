@@ -15,6 +15,7 @@ from rfc9290 import decode_problem_details
 
 from .scrapi_exception import ScrapiException
 from .null_engine import NullScrapiEngine
+from .datatrails_engine import DatatrailsScrapiEngine
 
 LOGGER = logging.getLogger(__name__)
 
@@ -32,6 +33,9 @@ class Scrapi:  # pylint: disable=too-many-instance-attributes
         match ts_type:
             case "dummy":
                 self.engine = NullScrapiEngine(ts_args)
+
+            case "DataTrails":
+                self.engine = DatatrailsScrapiEngine(ts_args)
 
             case _:
                 raise ScrapiException(f"Unknown engine type: {ts_type}'")
