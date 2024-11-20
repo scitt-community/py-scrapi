@@ -12,4 +12,4 @@ format:
 	black py_scrapi --line-length 79
 
 lint:
-	cd py_scrapi && pylint py_scrapi
+	cd py_scrapi && python -m pylint py_scrapi
