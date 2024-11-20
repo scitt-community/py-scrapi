@@ -20,6 +20,6 @@ setup(
     install_requires=[
         "cbor2",
         "pycose",
-        "rfc9292",
+        "rfc9290",
     ],
 )
