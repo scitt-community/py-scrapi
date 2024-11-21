@@ -24,13 +24,13 @@ print("Registering Signed Statement")
 with open("signed-statement.cbor", "rb") as data_file:
     original_cose = data_file.read()
 
-    original_signed_statement = Sign1Message.decode(original_cose)
+original_signed_statement = Sign1Message.decode(original_cose)
 
-    # Send to SCITT Transparency Service
-    lro = myScrapi.register_signed_statement(original_signed_statement)
-    if not lro:
-        print("FATAL: failed to get registration ID for Signed Statement")
-        sys.exit()
+# Send to SCITT Transparency Service
+lro = myScrapi.register_signed_statement(original_signed_statement)
+if not lro:
+    print("FATAL: failed to get registration ID for Signed Statement")
+    sys.exit()
 
 print("Polling operation status")
 # Check on the status of the operation
