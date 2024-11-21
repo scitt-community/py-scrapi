@@ -60,10 +60,10 @@ class DatatrailsScrapiEngine(ScrapiEngine):
     def register_signed_statement(self, statement):
         logging.debug("registering signed statement")
 
+        marshalled = statement.encode(sign=False)
         response = self._archivist.post_binary(
             f"{self._url}/archivist/v1/publicscitt/entries",
-            statement,
-        )
+            marshalled,
 
         # DataTrails API currently returns JSON...
         # Temporarily hack around this

@@ -84,17 +84,10 @@ class PyScrapi:
         """Wrapper for SCRAPI Register Signed Statement call
 
         args:
-            Content-Type: application/cose
-
-            18([                            / COSE Sign1         /
-            h'a1013822',                  / Protected Header   /
-            {},                           / Unprotected Header /
-            null,                         / Detached Payload   /
-            h'269cd68f4211dffc...0dcb29c' / Signature          /
-            ])
+            statement (pycose.Sign1Message): Signed Statement to register
 
         returns:
-            application/json
+            application/cbor
         """
 
         self.check_engine()
@@ -123,10 +116,10 @@ class PyScrapi:
         """Wrapper for SCRAPI Check Registration call
 
         args:
-            registration_id (str):
+            registration_id (str): locator for the in-progress registration to be checked
 
         returns:
-            application/json
+            application/cbor
         """
 
         self.check_engine()
@@ -155,7 +148,7 @@ class PyScrapi:
         """Wrapper for SCRAPI Resolve Receipt call
 
         args:
-            entry_id (str):
+            entry_id (str): locator for the receipt to be fetched
 
         returns:
             application/cose
@@ -176,7 +169,7 @@ class PyScrapi:
         """Wrapper for SCRAPI Resolve Signed Statement call
 
         args:
-            entry_id (str):
+            entry_id (str): locator for the Signed Statement to be fetched
 
         returns:
             application/cose
@@ -222,14 +215,7 @@ class PyScrapi:
         for a *very* long time!
 
         args:
-            Content-Type: application/cose
-
-            18([                            / COSE Sign1         /
-            h'a1013822',                  / Protected Header   /
-            {},                           / Unprotected Header /
-            null,                         / Detached Payload   /
-            h'269cd68f4211dffc...0dcb29c' / Signature          /
-            ])
+            statement (pycose.Sign1Message): Signed Statement to be registered
 
         returns:
             application/cose

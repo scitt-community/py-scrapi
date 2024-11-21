@@ -5,6 +5,7 @@ import os
 import sys
 import time
 
+from pycose.messages import Sign1Message
 from py_scrapi.py_scrapi import PyScrapi
 
 args = {
@@ -19,9 +20,12 @@ print("Initializing TS connection")
 myScrapi = PyScrapi("DataTrailsDroid", args)
 
 print("Registering Signed Statement")
-# Read the binary data from the file
+# Read the binary data from the file and make into Sign1Message
 with open("signed-statement.cbor", "rb") as data_file:
-    original_signed_statement = data_file.read()
+    original_cose = data_file.read()
+
+    original_signed_statement = Sign1Message.decode(original_cose)
+
     # Send to SCITT Transparency Service
     lro = myScrapi.register_signed_statement(original_signed_statement)
     if not lro:
@@ -70,7 +74,7 @@ retrieved_signed_statement = myScrapi.resolve_signed_statement(
 pprint(retrieved_signed_statement)
 
 retrieved_cose = retrieved_signed_statement.encode(tag=True, sign=False)
-if original_signed_statement != retrieved_cose:
+if original_cose != retrieved_cose:
     print("FATAL: STATEMENTS DO NOT MATCH!")
     sys.exit(1)
 
