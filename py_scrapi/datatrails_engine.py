@@ -49,10 +49,12 @@ class DatatrailsScrapiEngine(ScrapiEngine):
     def register_signed_statement(self, statement):
         logging.debug("registering signed statement")
 
+        marshalled = statement.encode(sign=False)
+
         headers = self._archivist._add_headers({})
         response = requests.post(
             f"{self._url}/archivist/v1/publicscitt/entries",
-            data=statement,
+            data=marshalled,
             headers=headers,
             timeout=20000,
         )

@@ -11,6 +11,7 @@ from time import time
 
 # SCRAPI and SCITT imports
 import cbor2
+from pycose.messages import Sign1Statement
 from rfc9290 import decode_problem_details
 
 from .scrapi_exception import ScrapiException
@@ -49,7 +50,7 @@ class PyScrapi:
     # The following methods require a Transparency Service and so require the
     # engine to be initialized
 
-    def check_engine(self):
+    def check_engine(self) -> None:
         """Helper to protect all calls that need a valid TS connection"""
 
         logging.debug("PyScrapi checking engine liveness...")
@@ -62,7 +63,7 @@ class PyScrapi:
 
         logging.debug("PyScrapi engine check SUCCESS")
 
-    def get_configuration(self):
+    def get_configuration(self) -> dict:
         """Wrapper for SCRAPI Transparency Configuration call
 
         args:
@@ -76,21 +77,14 @@ class PyScrapi:
 
         return self.engine.get_configuration()
 
-    def register_signed_statement(self, statement):
+    def register_signed_statement(self, statement: Sign1Statement) -> str:
         """Wrapper for SCRAPI Register Signed Statement call
 
         args:
-            Content-Type: application/cose
-
-            18([                            / COSE Sign1         /
-            h'a1013822',                  / Protected Header   /
-            {},                           / Unprotected Header /
-            null,                         / Detached Payload   /
-            h'269cd68f4211dffc...0dcb29c' / Signature          /
-            ])
+            statement (pycose.Sign1Message): Signed Statement to register
 
         returns:
-            application/json
+            application/cbor
         """
 
         self.check_engine()
@@ -115,14 +109,14 @@ class PyScrapi:
         # Seems legit, send it back
         return operation["operationID"]
 
-    def check_registration(self, registration_id):
+    def check_registration(self, registration_id: str) -> bytes | None:
         """Wrapper for SCRAPI Check Registration call
 
         args:
-            registration_id (str):
+            registration_id (str): locator for the in-progress registration to be checked
 
         returns:
-            application/json
+            application/cbor
         """
 
         self.check_engine()
@@ -147,11 +141,11 @@ class PyScrapi:
         # Seems legit, send it back
         return cbor2.loads(result)
 
-    def resolve_receipt(self, entry_id):
+    def resolve_receipt(self, entry_id: str) -> bytes | None:
         """Wrapper for SCRAPI Resolve Receipt call
 
         args:
-            entry_id (str):
+            entry_id (str): locator for the receipt to be fetched
 
         returns:
             application/cose
@@ -168,11 +162,11 @@ class PyScrapi:
 
         return result
 
-    def resolve_signed_statement(self, entry_id):
+    def resolve_signed_statement(self, entry_id: str) -> Sign1Statement:
         """Wrapper for SCRAPI Resolve Signed Statement call
 
         args:
-            entry_id (str):
+            entry_id (str): locator for the Signed Statement to be fetched
 
         returns:
             application/cose
@@ -189,7 +183,7 @@ class PyScrapi:
 
         return result
 
-    def issue_signed_statement(self, statement):
+    def issue_signed_statement(self, statement: bytes) -> Sign1Statement:
         """Sign a statement using a key held on the remote server
 
         args:
@@ -211,21 +205,14 @@ class PyScrapi:
 
         return result
 
-    def register_signed_statement_sync(self, statement):
+    def register_signed_statement_sync(self, statement: Sign1Statement) -> bytes | None:
         """Utility function for synchronous receipt generation.
 
         CAUTION! On some Transparency Service implementations this call may block
         for a *very* long time!
 
         args:
-            Content-Type: application/cose
-
-            18([                            / COSE Sign1         /
-            h'a1013822',                  / Protected Header   /
-            {},                           / Unprotected Header /
-            null,                         / Detached Payload   /
-            h'269cd68f4211dffc...0dcb29c' / Signature          /
-            ])
+            statement (pycose.Sign1Message): Signed Statement to be registered
 
         returns:
             application/cose
