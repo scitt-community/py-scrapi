@@ -11,6 +11,7 @@ from time import time
 
 # SCRAPI and SCITT imports
 import cbor2
+from pycose.messages import Sign1Statement
 from rfc9290 import decode_problem_details
 
 from .scrapi_exception import ScrapiException
@@ -49,7 +50,7 @@ class PyScrapi:
     # The following methods require a Transparency Service and so require the
     # engine to be initialized
 
-    def check_engine(self):
+    def check_engine(self) -> None:
         """Helper to protect all calls that need a valid TS connection"""
 
         logging.debug("PyScrapi checking engine liveness...")
@@ -62,7 +63,7 @@ class PyScrapi:
 
         logging.debug("PyScrapi engine check SUCCESS")
 
-    def get_configuration(self):
+    def get_configuration(self) -> dict:
         """Wrapper for SCRAPI Transparency Configuration call
 
         args:
@@ -76,7 +77,7 @@ class PyScrapi:
 
         return self.engine.get_configuration()
 
-    def register_signed_statement(self, statement):
+    def register_signed_statement(self, statement: Sign1Statement) -> str:
         """Wrapper for SCRAPI Register Signed Statement call
 
         args:
@@ -108,7 +109,7 @@ class PyScrapi:
         # Seems legit, send it back
         return operation["operationID"]
 
-    def check_registration(self, registration_id):
+    def check_registration(self, registration_id: str) -> bytes | None:
         """Wrapper for SCRAPI Check Registration call
 
         args:
@@ -140,7 +141,7 @@ class PyScrapi:
         # Seems legit, send it back
         return cbor2.loads(result)
 
-    def resolve_receipt(self, entry_id):
+    def resolve_receipt(self, entry_id: str) -> bytes | None:
         """Wrapper for SCRAPI Resolve Receipt call
 
         args:
@@ -161,7 +162,7 @@ class PyScrapi:
 
         return result
 
-    def resolve_signed_statement(self, entry_id):
+    def resolve_signed_statement(self, entry_id: str) -> Sign1Statement:
         """Wrapper for SCRAPI Resolve Signed Statement call
 
         args:
@@ -182,7 +183,7 @@ class PyScrapi:
 
         return result
 
-    def issue_signed_statement(self, statement):
+    def issue_signed_statement(self, statement: bytes) -> Sign1Statement:
         """Sign a statement using a key held on the remote server
 
         args:
@@ -204,7 +205,7 @@ class PyScrapi:
 
         return result
 
-    def register_signed_statement_sync(self, statement):
+    def register_signed_statement_sync(self, statement: Sign1Statement) -> bytes | None:
         """Utility function for synchronous receipt generation.
 
         CAUTION! On some Transparency Service implementations this call may block
