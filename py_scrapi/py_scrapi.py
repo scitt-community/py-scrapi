@@ -38,7 +38,7 @@ class PyScrapi:
                 self.engine = DatatrailsScrapiEngine(ts_args)
 
             case _:
-                raise ScrapiException(f"Unknown engine type: {ts_type}'")
+                raise ScrapiException(f"Unknown engine type: '{ts_type}'")
 
     def __str__(self) -> str:
         if self.engine:

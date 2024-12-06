@@ -6,20 +6,30 @@
 # and format fixups will be replaced by clean routing straight
 # into the DataTrails Python SDK
 
+import cbor2
+import json
 import logging
+
+from rfc9290 import encode_problem_details
 
 from archivist.archivist import Archivist
 from archivist.logger import set_logger
+from archivist.errors import ArchivistBadRequestError
 
-import cbor2
 from pycose.messages import Sign1Message
-import requests
 
 from .scrapi_engine import ScrapiEngine
 from .scrapi_exception import ScrapiException
 
 LOGGER = logging.getLogger(__name__)
 
+dummy_problem = {
+    "type": "https://example.com/error/validation-error",
+    "title": "Validation Error",
+    "detail": "Missing required field 'username'.",
+    "instance": "/requests/12345",
+    "response-code": 400,
+}
 
 class DatatrailsScrapiEngine(ScrapiEngine):
     """DataTrails SCRAPI Engine implementation"""
@@ -49,91 +59,68 @@ class DatatrailsScrapiEngine(ScrapiEngine):
     def register_signed_statement(self, statement):
         logging.debug("registering signed statement")
 
-        headers = self._archivist._add_headers({})
-        response = requests.post(
+        response = self._archivist.post_binary(
             f"{self._url}/archivist/v1/publicscitt/entries",
-            data=statement,
-            headers=headers,
-            timeout=20000,
+            statement,
         )
 
-        # Should be 201 CREATED but be flexible here
-        if response.status_code not in [200, 201, 202]:
-            logging.debug("%s", str(response))
-            raise ScrapiException(f"Failed to register statement: {response}")
-
+        # DataTrails API currently returns JSON...
+        # Temporarily hack around this
         # Early DataTrails implementations return JSON. In such cases fake
         # up CBOR response here so that common code doesn't need to change
-        jr = response.json()
+        jr = json.loads(response.decode('utf-8'))
         if jr:
-            return None, cbor2.dumps(response.json())
+            return None, cbor2.dumps(jr)
 
-        return None, response.content
+        return encode_problem_details(dummy_problem), None
 
     def check_registration(self, registration_id):
         logging.debug("checking on operation %s", registration_id)
 
-        headers = headers = self._archivist._add_headers({})
-        response = requests.get(
-            f"{self._url}/archivist/v1/publicscitt/operations/{registration_id}",
-            headers=headers,
-            timeout=20000,
-        )
-        if response.status_code == 400:
+        try:
+            response = self._archivist.get_binary(
+                f"{self._url}/archivist/v1/publicscitt/operations/{registration_id}",
+            )
+        except ArchivistBadRequestError as e:
             # Note: The Public SCITT endpoint returns 400 for Events that have not
             # made it across the sharing boundary yet.
             # Temporarily patch this, it will be removed soon.
+            logging.debug(e)
             logging.debug("Suspected temporary propagation 400 error")
             return None, cbor2.dumps(
                 {"operationID": registration_id, "status": "running"}
             )
 
-        if response.status_code not in [200, 201, 202]:
-            logging.debug(
-                "FAILED to get operation status: %s", response.status_code
-            )
-            return response.content, None
-
+        # DataTrails API currently returns JSON...
+        # Temporarily hack around this
         # Early DataTrails implementations return JSON. In such cases fake
         # up CBOR response here so that common code doesn't need to change
-        jr = response.json()
+        jr = json.loads(response.decode('utf-8'))
         if jr:
-            return None, cbor2.dumps(response.json())
+            return None, cbor2.dumps(jr)
 
-        return None, response.content
+        return encode_problem_details(dummy_problem), None
 
     def resolve_receipt(self, entry_id):
         logging.debug("resolving receipt %s", entry_id)
 
-        headers = headers = self._archivist._add_headers({})
-        response = requests.get(
+        response = self._archivist.get_binary(
             f"{self._url}/archivist/v1/publicscitt/entries/{entry_id}/receipt",
-            headers=headers,
-            timeout=20000,
         )
-        if response.status_code != 200:
-            logging.debug("FAILED to get receipt: %s", response.status_code)
-            return response.content, None
 
-        return None, response.content
+        return None, response
 
     def resolve_signed_statement(self, entry_id):
         logging.debug("resolving entry %s", entry_id)
 
-        headers = headers = self._archivist._add_headers({})
-        response = requests.get(
+        response = self._archivist.get_binary(
             f"{self._url}/archivist/v1/publicscitt/entries/{entry_id}",
-            headers=headers,
-            timeout=20000,
         )
-        if response.status_code != 200:
-            logging.debug("FAILED to get entry: %s", response.status_code)
-            return response.content, None
 
         # Note: DataTrails currently returns the _counter_SignedStatement
         # but SCRAPI wants the original SignedStatement exactly as submitted
         # by the Issuer, so strip off the outer envelope
-        decoded_statement = Sign1Message.decode(response.content)
+        decoded_statement = Sign1Message.decode(response)
         inner_statement = Sign1Message.decode(decoded_statement.payload)
 
         return None, inner_statement

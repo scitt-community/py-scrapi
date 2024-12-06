@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="py_scrapi",
-    version="0.1.0",
+    version="0.1.2",
     description="Python wrapper for IETF SCITT reference API (SCRAPI)",
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",
