@@ -19,7 +19,8 @@ setup(
     python_requires=">=3.6",
     install_requires=[
         "cbor2",
-        "pycose",
+        "ecdsa==0.18.0",
+        "pycose==1.0.1",
         "rfc9290",
     ],
 )

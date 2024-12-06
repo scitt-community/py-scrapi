@@ -12,7 +12,7 @@ args = {
     "url": "https://app.datatrails.ai",
     "client_secret": os.environ.get("DATATRAILS_CLIENT_SECRET"),
     "client_id": os.environ.get("DATATRAILS_CLIENT_ID"),
-    "log_level": "DEBUG",
+    "log_level": "INFO",
 }
 
 print("Initializing TS connection")
@@ -26,6 +26,19 @@ with open("signed-statement.cbor", "rb") as data_file:
 
 original_signed_statement = Sign1Message.decode(original_cose)
 
+# Hack in a meta-map
+original_signed_statement.phdr["meta_map"] = {
+  "conserver_link": "scitt",
+  "conserver_link_name":  "scitt_created",
+  "conserver_link_version": "0.2.0",
+  "timestamp_declared": "2024-05-07T16:33:29.004994",
+  "vcon_operation": "vcon_create",
+  "vcon_draft_version": "01"
+}
+
+# DEBUG: Re-serialise for check at the end
+submitted_cose = original_signed_statement.encode(tag=True, sign=False)
+
 # Send to SCITT Transparency Service
 lro = myScrapi.register_signed_statement(original_signed_statement)
 if not lro:
@@ -37,7 +50,6 @@ print("Polling operation status")
 # Poll until success or failure
 while True:
     reg_result = myScrapi.check_registration(lro)
-    print(reg_result)
 
     if not "status" in reg_result:
         print("This shouldn't happen!")
@@ -60,7 +72,6 @@ while True:
 
 print("Next we fetch the receipt!")
 receipt = myScrapi.resolve_receipt(reg_result["entryID"])
-pprint(receipt)
 
 # Write out the updated Transparent Statement
 with open("final_receipt", "wb") as file:
@@ -71,10 +82,9 @@ print("Now see if we can get the original Signed Statement back")
 retrieved_signed_statement = myScrapi.resolve_signed_statement(
     reg_result["entryID"]
 )
-pprint(retrieved_signed_statement)
 
 retrieved_cose = retrieved_signed_statement.encode(tag=True, sign=False)
-if original_cose != retrieved_cose:
+if submitted_cose != retrieved_cose:
     print("FATAL: STATEMENTS DO NOT MATCH!")
     sys.exit(1)
 

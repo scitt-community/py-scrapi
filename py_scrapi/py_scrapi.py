@@ -11,7 +11,7 @@ from time import time
 
 # SCRAPI and SCITT imports
 import cbor2
-from pycose.messages import Sign1Statement
+from pycose.messages import Sign1Message
 from rfc9290 import decode_problem_details
 
 from .scrapi_exception import ScrapiException
@@ -81,7 +81,7 @@ class PyScrapi:
 
         return self.engine.get_configuration()
 
-    def register_signed_statement(self, statement: Sign1Statement) -> str:
+    def register_signed_statement(self, statement: Sign1Message) -> str:
         """Wrapper for SCRAPI Register Signed Statement call
 
         args:
@@ -166,7 +166,7 @@ class PyScrapi:
 
         return result
 
-    def resolve_signed_statement(self, entry_id: str) -> Sign1Statement:
+    def resolve_signed_statement(self, entry_id: str) -> Sign1Message:
         """Wrapper for SCRAPI Resolve Signed Statement call
 
         args:
@@ -187,7 +187,7 @@ class PyScrapi:
 
         return result
 
-    def issue_signed_statement(self, statement: bytes) -> Sign1Statement:
+    def issue_signed_statement(self, statement: bytes) -> Sign1Message:
         """Sign a statement using a key held on the remote server
 
         args:
@@ -209,7 +209,7 @@ class PyScrapi:
 
         return result
 
-    def register_signed_statement_sync(self, statement: Sign1Statement) -> bytes | None:
+    def register_signed_statement_sync(self, statement: Sign1Message) -> bytes | None:
         """Utility function for synchronous receipt generation.
 
         CAUTION! On some Transparency Service implementations this call may block

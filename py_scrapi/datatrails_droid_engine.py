@@ -18,12 +18,22 @@ from archivist.logger import set_logger
 from archivist.errors import ArchivistBadRequestError
 
 from pycose.messages import Sign1Message
+from pycose.headers import CoseHeaderAttribute
 
 from .scrapi_engine import ScrapiEngine
 from .scrapi_exception import ScrapiException
 
 LOGGER = logging.getLogger(__name__)
 
+# @CoseHeaderAttribute.register_attribute()
+# class MetaMapHeader(CoseHeaderAttribute):
+#     identifier = -6804
+#     fullname = "META_MAP"
+
+@CoseHeaderAttribute.register_attribute()
+class CwtClaimsHeader(CoseHeaderAttribute):
+    identifier = 13
+    fullname = "CWT_CLAIMS"
 
 class DatatrailsDroidScrapiEngine(ScrapiEngine):
     """DataTrails Native Engine implementation"""
@@ -41,7 +51,7 @@ class DatatrailsDroidScrapiEngine(ScrapiEngine):
         # Make sure we have today's droid
         iso_date = datetime.today().strftime("%Y%m%d")
         asset_name = f"droid_{iso_date}"
-        self._asset_id, _ = self._archivist.assets.create_if_not_exists(
+        droid, _ = self._archivist.assets.create_if_not_exists(
             {
                 "selector": [
                     {
@@ -61,6 +71,7 @@ class DatatrailsDroidScrapiEngine(ScrapiEngine):
                 },
             },
         )
+        self._asset_id = droid['identity']
 
         self._initialized = True
 
@@ -77,13 +88,22 @@ class DatatrailsDroidScrapiEngine(ScrapiEngine):
         logging.debug("registering signed statement")
 
         # Extract the meta-map and lift them as attributes
-        attrs = statement.get_attr(-6804, {})
+        # TODO: get_attr doesn't work because of duplicate values in
+        # phdr and uhdr :-/
+        # attrs = statement.get_attr(MetaMapHeader, {})
+        attrs = statement.phdr["meta_map"] or {}
         logging.debug(attrs)
 
         # Base64 encode the original for safe transit
         bin_statement = statement.encode(sign=False)
         b64_statement = base64.b64encode(bin_statement).decode("utf-8")
         attrs["signed_statement"] = b64_statement
+
+        # Lift the subject to make it findable
+        # claims = statement.get_attr(CwtClaimsHeader, {})
+        claims = statement.phdr[CwtClaimsHeader]
+        attrs["subject"] = claims[2]
+        attrs["issuer"] = claims[1]
 
         try:
             props = {
@@ -95,7 +115,6 @@ class DatatrailsDroidScrapiEngine(ScrapiEngine):
                 props=props,
                 attrs=attrs,
             )
-            pass
         except ArchivistBadRequestError as e:
             logging.debug(e)
             return None, encode_problem_details(
@@ -109,7 +128,7 @@ class DatatrailsDroidScrapiEngine(ScrapiEngine):
 
         # Form the response using Event ID as the operation id
         scrapi_response = {
-            "operation_id": event["identity"],
+            "operationID": event["identity"],
             "status": "running",
         }
         return None, cbor2.dumps(scrapi_response)
@@ -137,12 +156,13 @@ class DatatrailsDroidScrapiEngine(ScrapiEngine):
         # Make sure it's settled on the log
         if event["confirmation_status"] in ["CONFIRMED", "COMMITTED"]:
             scrapi_response = {
-                "operation_id": registration_id,
-                "status": "success",
+                "operationID": registration_id,
+                "entryID": registration_id,
+                "status": "succeeded",
             }
         else:
             scrapi_response = {
-                "operation_id": registration_id,
+                "operationID": registration_id,
                 "status": "running",
             }
 
