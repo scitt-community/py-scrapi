@@ -64,6 +64,7 @@ class DatatrailsScrapiEngine(ScrapiEngine):
         response = self._archivist.post_binary(
             f"{self._url}/archivist/v1/publicscitt/entries",
             marshalled,
+        )
 
         # DataTrails API currently returns JSON...
         # Temporarily hack around this
