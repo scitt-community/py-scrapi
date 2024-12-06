@@ -16,6 +16,7 @@ from rfc9290 import decode_problem_details
 from .scrapi_exception import ScrapiException
 from .null_engine import NullScrapiEngine
 from .datatrails_engine import DatatrailsScrapiEngine
+from .datatrails_droid_engine import DatatrailsDroidScrapiEngine
 
 LOGGER = logging.getLogger(__name__)
 
@@ -36,6 +37,9 @@ class PyScrapi:
 
             case "DataTrails":
                 self.engine = DatatrailsScrapiEngine(ts_args)
+
+            case "DataTrailsDroid":
+                self.engine = DatatrailsDroidScrapiEngine(ts_args)
 
             case _:
                 raise ScrapiException(f"Unknown engine type: '{ts_type}'")

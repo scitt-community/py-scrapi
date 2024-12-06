@@ -31,6 +31,7 @@ dummy_problem = {
     "response-code": 400,
 }
 
+
 class DatatrailsScrapiEngine(ScrapiEngine):
     """DataTrails SCRAPI Engine implementation"""
 
@@ -68,7 +69,7 @@ class DatatrailsScrapiEngine(ScrapiEngine):
         # Temporarily hack around this
         # Early DataTrails implementations return JSON. In such cases fake
         # up CBOR response here so that common code doesn't need to change
-        jr = json.loads(response.decode('utf-8'))
+        jr = json.loads(response.decode("utf-8"))
         if jr:
             return None, cbor2.dumps(jr)
 
@@ -95,7 +96,7 @@ class DatatrailsScrapiEngine(ScrapiEngine):
         # Temporarily hack around this
         # Early DataTrails implementations return JSON. In such cases fake
         # up CBOR response here so that common code doesn't need to change
-        jr = json.loads(response.decode('utf-8'))
+        jr = json.loads(response.decode("utf-8"))
         if jr:
             return None, cbor2.dumps(jr)
 
