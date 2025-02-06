@@ -17,7 +17,8 @@ args = {
 
 print("Initializing TS connection")
 #myScrapi = PyScrapi("DataTrails", args)
-myScrapi = PyScrapi("DataTrailsDroid", args)
+#myScrapi = PyScrapi("DataTrailsDroid", args)
+myScrapi = PyScrapi("DataTrailsEvents", args)
 
 print("Registering Signed Statement")
 # Read the binary data from the file and make into Sign1Message

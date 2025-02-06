@@ -18,6 +18,7 @@ from .scrapi_exception import ScrapiException
 from .null_engine import NullScrapiEngine
 from .datatrails_engine import DatatrailsScrapiEngine
 from .datatrails_droid_engine import DatatrailsDroidScrapiEngine
+from .datatrails_events_engine import DatatrailsEventsScrapiEngine
 
 LOGGER = logging.getLogger(__name__)
 
@@ -41,6 +42,9 @@ class PyScrapi:
 
             case "DataTrailsDroid":
                 self.engine = DatatrailsDroidScrapiEngine(ts_args)
+
+            case "DataTrailsEvents":
+                self.engine = DatatrailsEventsScrapiEngine(ts_args)
 
             case _:
                 raise ScrapiException(f"Unknown engine type: '{ts_type}'")
